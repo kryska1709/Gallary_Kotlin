@@ -1,6 +1,5 @@
 package com.example.gallary
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,27 +11,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 
 @Composable
 fun Gallarys() {
-    val selectedIndexImage = remember { mutableStateOf<Int?>(null) }
-    val context = LocalContext.current
-    val gallery = listOf(
+    var selectedIndexImage by remember { mutableStateOf<Int?>(null) }
+    val gallery = remember { mutableListOf(
         R.drawable.may,
         R.drawable.airo,
         R.drawable.appa,
@@ -85,8 +85,9 @@ fun Gallarys() {
         R.drawable.kioshi,
         R.drawable.ozai,
         R.drawable.sokka,
-    )
-    if(selectedIndexImage.value == null) {
+    ) }
+    val openDialog = remember { mutableStateOf(false)}
+    if(selectedIndexImage == null) {
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
@@ -98,7 +99,7 @@ fun Gallarys() {
                 GalleryPhoto(
                     imageId = gallery[index]
                 ){
-                    selectedIndexImage.value = index
+                    selectedIndexImage = index
                 }
             }
         }
@@ -107,29 +108,45 @@ fun Gallarys() {
 
         ) {
             Image(
-                painter = painterResource(id = gallery[selectedIndexImage.value!!]),
+                painter = painterResource(id = gallery[selectedIndexImage!!]),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
                     .align(alignment = Alignment.Center)
             )
-            if (selectedIndexImage.value!! > 0) {
+            Text(
+                text = " ${selectedIndexImage!! + 1} из ${gallery.size}",
+                modifier = Modifier
+                    .align(alignment = Alignment.TopEnd)
+                    .padding(10.dp),
+                color = Color.Cyan,
+                fontSize = 24.sp
+            )
+            IconButton(
+                onClick = { openDialog.value = true },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ){
+                Icon(
+                    painter = painterResource(R.drawable.trashcan_delete_remove_trash_icon_178327),
+                    contentDescription = null,
+                    tint = Color.Magenta
+                )
+            }
+            if (selectedIndexImage!! > 0) {
                 IconButton(
-                    { selectedIndexImage.value = selectedIndexImage.value!! - 1 },
+                    onClick = { selectedIndexImage = selectedIndexImage!! - 1 },
                     modifier = Modifier.align(alignment = Alignment.CenterStart)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.left),
                         contentDescription = null,
-                        tint = Color.Cyan,
+                        tint = Color.Cyan
                     )
                 }
-            } else {
-                Toast.makeText(context, "вы на первой фотографии", Toast.LENGTH_SHORT).show()
             }
-            if (selectedIndexImage.value!! < gallery.size - 1) {
+            if (selectedIndexImage!! < gallery.size - 1) {
                 IconButton(
-                    { selectedIndexImage.value = selectedIndexImage.value!! + 1 },
+                    { selectedIndexImage = selectedIndexImage!! + 1 },
                     modifier = Modifier.align(alignment = Alignment.CenterEnd)
                 ) {
                     Icon(
@@ -138,13 +155,10 @@ fun Gallarys() {
                         tint = Color.Cyan
                     )
                 }
-            } else {
-                Toast.makeText(context, "вы на последней фотографии", Toast.LENGTH_SHORT).show()
             }
-
             IconButton(
-                { selectedIndexImage.value = null },
-                modifier = Modifier.align(alignment = Alignment.BottomCenter)
+                { selectedIndexImage = null },
+                modifier = Modifier.align(alignment = Alignment.TopStart)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.down),
@@ -152,6 +166,35 @@ fun Gallarys() {
                     tint = Color.Cyan
                 )
             }
+        }
+        if (openDialog.value){
+            AlertDialog(
+                onDismissRequest = {openDialog.value = false},
+                modifier = Modifier.padding(30.dp),
+                text = {
+                    Text(
+                        text = "вы действительно хотите удалить фотографию?",
+                        fontSize = 18.sp,)
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            gallery.removeAt(selectedIndexImage!!)
+                            openDialog.value = false
+                        },
+                    ){
+                        Text("удалить")
+                    }
+                },
+                dismissButton = {
+
+                    Button(
+                        {openDialog.value = false}
+                    ){
+                        Text("отмена")
+                    }
+                }
+            )
         }
     }
 }
